@@ -67,6 +67,7 @@ func (n *BlockNonce) UnmarshalText(input []byte) error {
 //go:generate gencodec -type Header -field-override headerMarshaling -out gen_header_json.go
 
 // Header represents a block header in the Ethereum blockchain.
+// 区块头
 type Header struct {
 
 	// 前区块的hash
@@ -108,11 +109,13 @@ type headerMarshaling struct {
 
 // Hash returns the block hash of the header, which is simply the keccak256 hash of its
 // RLP encoding.
+// 生成区块的hash
 func (h *Header) Hash() common.Hash {
 	return rlpHash(h)
 }
 
 // HashNoNonce returns the hash which is used as input for the proof-of-work search.
+
 func (h *Header) HashNoNonce() common.Hash {
 	return rlpHash([]interface{}{
 		h.ParentHash,
@@ -131,6 +134,7 @@ func (h *Header) HashNoNonce() common.Hash {
 	})
 }
 
+// 区块头的rlp的hash，rlp是一种编码规则
 func rlpHash(x interface{}) (h common.Hash) {
 	hw := sha3.NewKeccak256()
 	rlp.Encode(hw, x)
@@ -140,9 +144,12 @@ func rlpHash(x interface{}) (h common.Hash) {
 
 // Body is a simple (mutable, non-safe) data container for storing and moving
 // a block's data contents (transactions and uncles) together.
+// 交易体 交易信息存储到这里
 type Body struct {
 	Transactions []*Transaction
-	Uncles       []*Header
+	// 防止算力比较强的节点，防止破坏去中心化的原则
+	// 抵消区块影响力太大的节点
+	Uncles []*Header
 }
 
 // Block represents an entire block in the Ethereum blockchain.、
@@ -153,7 +160,9 @@ type Block struct {
 	transactions Transactions
 
 	// caches
+	// 缓冲上一次计算出来的hash 避免没有必要的计算
 	hash atomic.Value
+
 	size atomic.Value
 
 	// Td is used by package core to store the total difficulty
@@ -390,6 +399,7 @@ func (b *Block) WithBody(transactions []*Transaction, uncles []*Header) *Block {
 
 // Hash returns the keccak256 hash of b's header.
 // The hash is computed on the first call and cached thereafter.
+// 以太坊产生唯一标识符函数
 func (b *Block) Hash() common.Hash {
 	if hash := b.hash.Load(); hash != nil {
 		return hash.(common.Hash)
