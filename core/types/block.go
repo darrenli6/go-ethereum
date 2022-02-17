@@ -68,21 +68,31 @@ func (n *BlockNonce) UnmarshalText(input []byte) error {
 
 // Header represents a block header in the Ethereum blockchain.
 type Header struct {
-	ParentHash  common.Hash    `json:"parentHash"       gencodec:"required"`
-	UncleHash   common.Hash    `json:"sha3Uncles"       gencodec:"required"`
-	Coinbase    common.Address `json:"miner"            gencodec:"required"`
-	Root        common.Hash    `json:"stateRoot"        gencodec:"required"`
-	TxHash      common.Hash    `json:"transactionsRoot" gencodec:"required"`
-	ReceiptHash common.Hash    `json:"receiptsRoot"     gencodec:"required"`
-	Bloom       Bloom          `json:"logsBloom"        gencodec:"required"`
-	Difficulty  *big.Int       `json:"difficulty"       gencodec:"required"`
-	Number      *big.Int       `json:"number"           gencodec:"required"`
-	GasLimit    *big.Int       `json:"gasLimit"         gencodec:"required"`
-	GasUsed     *big.Int       `json:"gasUsed"          gencodec:"required"`
-	Time        *big.Int       `json:"timestamp"        gencodec:"required"`
-	Extra       []byte         `json:"extraData"        gencodec:"required"`
-	MixDigest   common.Hash    `json:"mixHash"          gencodec:"required"`
-	Nonce       BlockNonce     `json:"nonce"            gencodec:"required"`
+
+	// 前区块的hash
+	ParentHash common.Hash    `json:"parentHash"       gencodec:"required"`
+	UncleHash  common.Hash    `json:"sha3Uncles"       gencodec:"required"`
+	Coinbase   common.Address `json:"miner"            gencodec:"required"`
+	// 默克尔merkle根节点
+	Root common.Hash `json:"stateRoot"        gencodec:"required"`
+	//
+	TxHash      common.Hash `json:"transactionsRoot" gencodec:"required"`
+	ReceiptHash common.Hash `json:"receiptsRoot"     gencodec:"required"`
+	// 过滤日志，快速判断 日志是否在日志列表里面
+	Bloom Bloom `json:"logsBloom"        gencodec:"required"`
+	// 挖矿难度
+	Difficulty *big.Int `json:"difficulty"       gencodec:"required"`
+	Number     *big.Int `json:"number"           gencodec:"required"`
+	GasLimit   *big.Int `json:"gasLimit"         gencodec:"required"`
+	GasUsed    *big.Int `json:"gasUsed"          gencodec:"required"`
+
+	Time *big.Int `json:"timestamp"        gencodec:"required"`
+	// 额外的数据
+	Extra []byte `json:"extraData"        gencodec:"required"`
+	// 工作量 添加了一个内存难解的，以太坊共识算法  与比特币pow不同
+	MixDigest common.Hash `json:"mixHash"          gencodec:"required"`
+	// 随机
+	Nonce BlockNonce `json:"nonce"            gencodec:"required"`
 }
 
 // field type overrides for gencodec
@@ -135,7 +145,8 @@ type Body struct {
 	Uncles       []*Header
 }
 
-// Block represents an entire block in the Ethereum blockchain.
+// Block represents an entire block in the Ethereum blockchain.、
+// 区块的结构
 type Block struct {
 	header       *Header
 	uncles       []*Header
@@ -147,10 +158,12 @@ type Block struct {
 
 	// Td is used by package core to store the total difficulty
 	// of the chain up to and including the block.
+	//挖矿的总难度
 	td *big.Int
 
 	// These fields are used by package eth to track
 	// inter-peer block relay.
+	//接受时间
 	ReceivedAt   time.Time
 	ReceivedFrom interface{}
 }
