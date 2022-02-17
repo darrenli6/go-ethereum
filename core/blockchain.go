@@ -119,6 +119,7 @@ type BlockChain struct {
 // NewBlockChain returns a fully initialised block chain using information
 // available in the database. It initialises the default Ethereum Validator and
 // Processor.
+//新建区块
 func NewBlockChain(chainDb ethdb.Database, config *params.ChainConfig, engine consensus.Engine, vmConfig vm.Config) (*BlockChain, error) {
 	bodyCache, _ := lru.New(bodyCacheLimit)
 	bodyRLPCache, _ := lru.New(bodyCacheLimit)
@@ -147,10 +148,12 @@ func NewBlockChain(chainDb ethdb.Database, config *params.ChainConfig, engine co
 	if err != nil {
 		return nil, err
 	}
+	//获取创世区块
 	bc.genesisBlock = bc.GetBlockByNumber(0)
 	if bc.genesisBlock == nil {
 		return nil, ErrNoGenesis
 	}
+	//获取最新的状态
 	if err := bc.loadLastState(); err != nil {
 		return nil, err
 	}
@@ -168,6 +171,7 @@ func NewBlockChain(chainDb ethdb.Database, config *params.ChainConfig, engine co
 		}
 	}
 	// Take ownership of this particular state
+	//更新
 	go bc.update()
 	return bc, nil
 }
