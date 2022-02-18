@@ -41,13 +41,18 @@ import (
 )
 
 var (
+
+	//生成一个创世区块的指令
 	initCommand = cli.Command{
+		// 函数调用
 		Action:    utils.MigrateFlags(initGenesis),
 		Name:      "init",
 		Usage:     "Bootstrap and initialize a new genesis block",
 		ArgsUsage: "<genesisPath>",
 		Flags: []cli.Flag{
+
 			utils.DataDirFlag,
+
 			utils.LightModeFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
@@ -142,8 +147,11 @@ Use "ethereum dump 0" to dump the genesis block.`,
 
 // initGenesis will initialise the given JSON format genesis file and writes it as
 // the zero'd block (i.e. genesis) or will fail hard if it can't succeed.
+// 初始化创世区块
 func initGenesis(ctx *cli.Context) error {
 	// Make sure we have a valid genesis JSON
+	//genesis.json
+	// 确保有一个合法的json
 	genesisPath := ctx.Args().First()
 	if len(genesisPath) == 0 {
 		utils.Fatalf("Must supply path to genesis JSON file")
@@ -155,16 +163,21 @@ func initGenesis(ctx *cli.Context) error {
 	defer file.Close()
 
 	genesis := new(core.Genesis)
+	// 对通过decoder对JSON file的genesis的内容进行解码
 	if err := json.NewDecoder(file).Decode(genesis); err != nil {
 		utils.Fatalf("invalid genesis file: %v", err)
 	}
 	// Open an initialise both full and light databases
+	// 为全节点和轻节点写入创世区块
 	stack := makeFullNode(ctx)
+	//chaindata 全节点
+	//lightchaindata  轻节点
 	for _, name := range []string{"chaindata", "lightchaindata"} {
 		chaindb, err := stack.OpenDatabase(name, 0, 0)
 		if err != nil {
 			utils.Fatalf("Failed to open database: %v", err)
 		}
+		//加载创世区块
 		_, hash, err := core.SetupGenesisBlock(chaindb, genesis)
 		if err != nil {
 			utils.Fatalf("Failed to write genesis block: %v", err)

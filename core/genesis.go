@@ -149,18 +149,24 @@ func (e *GenesisMismatchError) Error() string {
 // error is a *params.ConfigCompatError and the new, unwritten config is returned.
 //
 // The returned chain configuration is never nil.
+// 写入
 func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
 		return params.AllEthashProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
 
 	// Just commit the new block if there is no stored genesis block.
+
 	stored := GetCanonicalHash(db, 0)
+	// 获取hash
 	if (stored == common.Hash{}) {
+
 		if genesis == nil {
+			//如果为空 使用默认的genesis   使用的是主网
 			log.Info("Writing default main-net genesis block")
 			genesis = DefaultGenesisBlock()
 		} else {
+			// 自定义
 			log.Info("Writing custom genesis block")
 		}
 		block, err := genesis.Commit(db)
@@ -169,6 +175,7 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 
 	// Check whether the genesis block is already written.
 	if genesis != nil {
+
 		block, _ := genesis.ToBlock()
 		hash := block.Hash()
 		if hash != stored {
@@ -177,7 +184,9 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 	}
 
 	// Get the existing chain configuration.
+	// 得到配置  检查到底是否配置到区块链中
 	newcfg := genesis.configOrDefault(stored)
+	// 获取当前区块链的配置
 	storedcfg, err := GetChainConfig(db, stored)
 	if err != nil {
 		if err == ErrChainConfigNotFound {
@@ -187,6 +196,7 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 		}
 		return newcfg, stored, err
 	}
+
 	// Special case: don't change the existing config of a non-mainnet chain if no new
 	// config is supplied. These chains would get AllProtocolChanges (and a compat error)
 	// if we just continued here.
@@ -196,6 +206,8 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 
 	// Check config compatibility and write the config. Compatibility errors
 	// are returned to the caller unless we're already at block zero.
+
+	// 检查
 	height := GetBlockNumber(db, GetHeadHeaderHash(db))
 	if height == missingNumber {
 		return newcfg, stored, fmt.Errorf("missing block number for head header hash")
@@ -257,7 +269,9 @@ func (g *Genesis) ToBlock() (*types.Block, *state.StateDB) {
 
 // Commit writes the block and state of a genesis specification to the database.
 // The block is committed as the canonical head block.
+// 将创世区块写入数据库中
 func (g *Genesis) Commit(db ethdb.Database) (*types.Block, error) {
+
 	block, statedb := g.ToBlock()
 	if block.Number().Sign() != 0 {
 		return nil, fmt.Errorf("can't commit genesis block with number > 0")
@@ -364,7 +378,7 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 			common.BytesToAddress([]byte{6}): {Balance: big.NewInt(1)}, // ECAdd
 			common.BytesToAddress([]byte{7}): {Balance: big.NewInt(1)}, // ECScalarMul
 			common.BytesToAddress([]byte{8}): {Balance: big.NewInt(1)}, // ECPairing
-			faucet: {Balance: new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9))},
+			faucet:                           {Balance: new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9))},
 		},
 	}
 }
